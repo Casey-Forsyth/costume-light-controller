@@ -10,26 +10,41 @@ namespace LightMobileApp
     [Activity(Label = "@string/app_name", Theme = "@style/AppTheme", MainLauncher = true)]
     public class MainActivity : AppCompatActivity, BottomNavigationView.IOnNavigationItemSelectedListener
     {
-        private TextView _textMessage;
 
         public bool OnNavigationItemSelected(IMenuItem item)
         {
-            switch (item.ItemId)
+            return loadFragment(item.ItemId);
+        }
+
+        private bool loadFragment(int id)
+        {
+            Fragment fragment = null;
+
+            switch (id)
             {
                 case Resource.Id.navigation_devices:
-                    _textMessage.SetText(Resource.String.title_notifications);
-                    return true;
+                    fragment = DeviceFragment.NewInstance();
+                    break;
                 case Resource.Id.navigation_single_color:
-                    _textMessage.SetText(Resource.String.title_single_color);
-                    return true;
+                    fragment = SingleColorFragment.NewInstance();
+                    break;
                 case Resource.Id.navigation_glow:
-                    _textMessage.SetText(Resource.String.title_glowing);
-                    return true;
+                    fragment = GlowColorFragment.NewInstance();
+                    break;
                 case Resource.Id.navigation_notifications:
-                    _textMessage.SetText(Resource.String.title_notifications);
-                    return true;
+                    fragment = NotificationsFragment.NewInstance();
+                    break;
+                default:
+                    return false;
             }
-            return false;
+
+            FragmentTransaction fragmentTx = this.FragmentManager.BeginTransaction();
+            fragmentTx.Replace(Resource.Id.content_frame, fragment);
+            fragmentTx.Commit();
+
+
+            return true;
+
         }
 
         protected override void OnCreate(Bundle savedInstanceState)
@@ -37,7 +52,6 @@ namespace LightMobileApp
             base.OnCreate(savedInstanceState);
             SetContentView(Resource.Layout.activity_main);
 
-            _textMessage = FindViewById<TextView>(Resource.Id.message);
             BottomNavigationView navigation = FindViewById<BottomNavigationView>(Resource.Id.navigation);
             navigation.SetOnNavigationItemSelectedListener(this);
         }
