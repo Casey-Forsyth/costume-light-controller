@@ -1,6 +1,10 @@
 <resources>
-    <string name="app_name">LightMobileApp</string>
-    <string name="title_home">Home</string>
-    <string name="title_dashboard">Dashboard</string>
-    <string name="title_notifications">Notifications</string>
+  <string name="app_name">CostumeLighting</string>
+  <string name="title_home">Home</string>
+  <string name="title_dashboard">Dashboard</string>
+
+  <string name="title_devices">Devices</string>
+  <string name="title_single_color">Single Color</string>
+  <string name="title_glowing">Glowing</string>
+  <string name="title_notifications">Notifications</string>
 </resources>

@@ -16,11 +16,14 @@ namespace LightMobileApp
         {
             switch (item.ItemId)
             {
-                case Resource.Id.navigation_home:
-                    _textMessage.SetText(Resource.String.title_home);
+                case Resource.Id.navigation_devices:
+                    _textMessage.SetText(Resource.String.title_notifications);
                     return true;
-                case Resource.Id.navigation_dashboard:
-                    _textMessage.SetText(Resource.String.title_dashboard);
+                case Resource.Id.navigation_single_color:
+                    _textMessage.SetText(Resource.String.title_single_color);
+                    return true;
+                case Resource.Id.navigation_glow:
+                    _textMessage.SetText(Resource.String.title_glowing);
                     return true;
                 case Resource.Id.navigation_notifications:
                     _textMessage.SetText(Resource.String.title_notifications);
