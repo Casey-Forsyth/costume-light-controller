@@ -55,6 +55,8 @@
     <Reference Include="Mono.Android" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BTDevice.cs" />
+    <Compile Include="DeviceController.cs" />
     <Compile Include="DeviceFragment.cs" />
     <Compile Include="GlowColorFragment.cs" />
     <Compile Include="MainActivity.cs" />
