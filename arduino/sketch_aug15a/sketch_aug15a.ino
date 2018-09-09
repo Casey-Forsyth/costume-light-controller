@@ -3,24 +3,25 @@
 #include <ArduinoJson.h>
 
 Adafruit_NeoPixel pixelStrips[] = {
-  Adafruit_NeoPixel(1, 14, NEO_RGBW + NEO_KHZ800),
-  Adafruit_NeoPixel(1, 32, NEO_RGBW + NEO_KHZ800),
-  Adafruit_NeoPixel(1, 15, NEO_RGBW + NEO_KHZ800),
-  Adafruit_NeoPixel(1, 33, NEO_RGBW + NEO_KHZ800),
-  Adafruit_NeoPixel(1, 27, NEO_RGBW + NEO_KHZ800)
+  Adafruit_NeoPixel(2, 14, NEO_RGBW + NEO_KHZ800),
+  Adafruit_NeoPixel(2, 32, NEO_RGBW + NEO_KHZ800),
+  Adafruit_NeoPixel(2, 15, NEO_RGBW + NEO_KHZ800),
+  Adafruit_NeoPixel(2, 33, NEO_RGBW + NEO_KHZ800),
+  Adafruit_NeoPixel(2, 27, NEO_RGBW + NEO_KHZ800)
 };
 #define NUMSTRIPS (sizeof(pixelStrips)/sizeof(pixelStrips[0]))
 
 
 String mode = "whiteglow";
-DynamicJsonBuffer jsonBuffer;
-JsonObject& modeData = jsonBuffer.parseObject("{'test':'test'}");
-;
+DynamicJsonDocument jsonDoc;
+JsonObject modeData;
+
 BluetoothSerial SerialBT;
 
 void setup() {
 
   Serial.begin(115200);
+  Serial.println("Start");
   SerialBT.begin("TestWOW");
   for(int i=0; i<NUMSTRIPS; i++){
     pixelStrips[i].begin();
@@ -30,26 +31,24 @@ void setup() {
 
 
 
-int BT_PERIOD = 5;
+int BT_PERIOD = 1;
 long lastBT = 0;
 int light_PERIOD = 100;
 long lastLight = 0;
 void loop() {
 
   long t = millis();
-  if( t - lastBT > BT_PERIOD ){
-    lastBT = t;
-    readBT();
-  }
-
+  readBT();
+  
   if( t - lastLight > light_PERIOD ){
+    //Serial.println("lIGHT UDATE");
     lastLight = t;
     nextStep();
   }
   
   
   
-  delay(5);
+  delay(1);
 }
 
 
@@ -67,9 +66,13 @@ void readBT(){
       buffer = buffer + c;
     }else{
       Serial.println(buffer);
-      JsonObject& root = jsonBuffer.parseObject(buffer);
-      mode = root["modeType"].as<String>();
-      modeData = root["modeData"];
+      deserializeJson(jsonDoc, buffer);
+      JsonObject obj = jsonDoc.as<JsonObject>();
+
+      mode = obj["modeType"].as<String>();
+      if( obj.containsKey("modeData")){
+        modeData = obj["modeData"];  
+      }
       buffer = "";
     }
   }
@@ -95,6 +98,10 @@ void nextStep() {
     setColorMode();
   }
 
+  if( mode.equals("glowUpAndDown") ){
+    setGlowUpAndDownMode();
+  }
+
 
 
   showAllStrips();
@@ -109,7 +116,32 @@ void nextStep() {
 //Modes
 
 void setColorMode(){
-  //setAllPixelsTo( modeData["r"], modeData["g"] modeData["b"], modeData["w"]);
+  setAllPixelsTo( modeData["r"], modeData["g"], modeData["b"], modeData["w"] );
+}
+
+void setGlowUpAndDownMode(){
+
+  long t = millis();
+  int p = modeData["p"];
+  float per = abs(1.0 - 2*(t%p)/((float)p));
+
+  int rd = modeData["rd"];
+  int gd = modeData["gd"];
+  int bd = modeData["bd"];
+  int wd = modeData["wd"];
+ 
+  int ru = modeData["ru"];
+  int gu = modeData["gu"];
+  int bu = modeData["bu"];
+  int wu = modeData["wu"];
+
+  int r = rd + (ru - rd) * per;
+  int g = gd + (gu - gd) * per;
+  int b = bd + (bu - bd) * per;
+  int w = wd + (wu - wd) * per;
+  
+  
+  setAllPixelsTo( r, g, b, w );
 }
 
 
