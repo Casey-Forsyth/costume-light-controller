@@ -43,9 +43,14 @@ namespace LightMobileApp
         SeekBar wdBar = null;
 
         SeekBar pBar = null;
+        TextView pText = null;
+
+        Button butSend = null;
+
         DeviceController dc = DeviceController.getInstance();
 
-        const int MAX_PERIOD = 4000;
+        const int MIN_PERIOD = 1000;
+        const int MAX_PERIOD = 15000;
 
         public override void OnCreate(Bundle savedInstanceState)
         {
@@ -70,9 +75,10 @@ namespace LightMobileApp
             wdBar = this.Activity.FindViewById<SeekBar>(Resource.Id.whitedw_seek_button);
 
             pBar = this.Activity.FindViewById<SeekBar>(Resource.Id.period_seek_button);
+            pText = this.Activity.FindViewById<TextView>(Resource.Id.textview_period);
 
-            SeekBar[] views = { ruBar, guBar, buBar, wuBar , rdBar, gdBar, bdBar, wdBar };
-            Color[] colors = { Color.Red, Color.Green, Color.Blue, Color.Black, Color.Red, Color.Green, Color.Blue, Color.Black };
+            SeekBar[] views = { ruBar, guBar, buBar, wuBar , rdBar, gdBar, bdBar, wdBar, pBar };
+            Color[] colors = { Color.Red, Color.Green, Color.Blue, Color.Black, Color.Red, Color.Green, Color.Blue, Color.Black,Color.Black };
 
             for (int i = 0; i < colors.Length; i++)
             {
@@ -83,13 +89,24 @@ namespace LightMobileApp
                 views[i].SetOnSeekBarChangeListener(this);
             }
 
+            butSend = this.Activity.FindViewById<Button>(Resource.Id.buttonSend);
+            butSend.Click += delegate {
+                GatherPosDataAndSend();
+            };
+
+
         }
 
 
         public void OnProgressChanged(SeekBar seekBar, int progress, bool fromUser)
         {
-            GatherPosDataAndSend();
+            
+            
+            if(seekBar == pBar)
+            {
 
+                pText.Text = "Period - " + percentToPeriod(progress)/1000 + "s";
+            }
         }
 
         private int percentToDeviceRange(int per)
@@ -97,9 +114,14 @@ namespace LightMobileApp
             return per * 255 / 100;
         }
 
+        private int percentToPeriod(int per)
+        {
+            return (int) ((MIN_PERIOD) + (MAX_PERIOD - MIN_PERIOD) * (per / 100.0));
+        }
+
         public void OnStartTrackingTouch(SeekBar seekBar)
         {
-            GatherPosDataAndSend();
+            //GatherPosDataAndSend();
 
         }
 
@@ -111,23 +133,21 @@ namespace LightMobileApp
 
         private void GatherPosDataAndSend()
         {
-            JSONObject msg = new JSONObject();
 
-            msg.Put("modeType", "glowUpAndDown");
+            int rd = percentToDeviceRange(rdBar.Progress);
+            int gd = percentToDeviceRange(gdBar.Progress);
+            int bd = percentToDeviceRange(bdBar.Progress);
+            int wd = percentToDeviceRange(wdBar.Progress);
 
+            int ru = percentToDeviceRange(ruBar.Progress);
+            int gu = percentToDeviceRange(guBar.Progress);
+            int bu = percentToDeviceRange(buBar.Progress);
+            int wu = percentToDeviceRange(wuBar.Progress);
 
-            JSONObject data = new JSONObject();
+            int p = percentToPeriod(pBar.Progress)/100;
 
+            String msg = $"G{p:000}{rd:000}{gd:000}{bd:000}{wd:000}{ru:000}{gu:000}{bu:000}{wu:000}\n";
 
-            addColorToJSON(data, "r", ruBar, rdBar);
-            addColorToJSON(data, "g", guBar, gdBar);
-            addColorToJSON(data, "b", buBar, bdBar);
-            addColorToJSON(data, "w", wuBar, wdBar);
-            data.Put("p", (int)(pBar.Progress * MAX_PERIOD));
-
-
-            msg.Put("modeData", data);
-            Log.Info("Single Color", "On Progress Change : " + msg.ToString());
 
             Thread thread = new Thread(() =>
             {
@@ -148,8 +168,8 @@ namespace LightMobileApp
                 min = max;
                 max = temp;
             }
-            obj.Put(pre+"u", percentToDeviceRange(max));
-            obj.Put(pre + "d", percentToDeviceRange(min));
+            obj.Put(pre+"u", max);
+            obj.Put(pre + "d", min);
         }
 
 

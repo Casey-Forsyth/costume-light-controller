@@ -43,4 +43,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/white_seek_button" />
+    <Button
+        android:text="Send"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/buttonSend" />
 </LinearLayout>

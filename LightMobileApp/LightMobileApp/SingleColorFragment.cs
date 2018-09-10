@@ -23,6 +23,10 @@ namespace LightMobileApp
         SeekBar gBar = null;
         SeekBar bBar = null;
         SeekBar wBar = null;
+
+        Button butSend = null;
+
+
         DeviceController dc = DeviceController.getInstance();
 
         public override void OnCreate(Bundle savedInstanceState)
@@ -54,6 +58,11 @@ namespace LightMobileApp
                 views[i].SetOnSeekBarChangeListener(this);
             }
 
+            butSend = this.Activity.FindViewById<Button>(Resource.Id.buttonSend);
+            butSend.Click += delegate {
+                GatherPosDataAndSend();
+            };
+
         }
 
         public static SingleColorFragment NewInstance()
@@ -70,7 +79,6 @@ namespace LightMobileApp
 
         public void OnProgressChanged(SeekBar seekBar, int progress, bool fromUser)
         {
-            GatherPosDataAndSend();
 
         }
 
@@ -81,39 +89,30 @@ namespace LightMobileApp
 
         public void OnStartTrackingTouch(SeekBar seekBar)
         {
-            GatherPosDataAndSend();
 
         }
 
         public void OnStopTrackingTouch(SeekBar seekBar)
         {
-            GatherPosDataAndSend();
+
         }
 
 
         private void GatherPosDataAndSend()
         {
-            JSONObject msg = new JSONObject();
+            int r = percentToDeviceRange(rBar.Progress);
+            int g = percentToDeviceRange(gBar.Progress);
+            int b = percentToDeviceRange(bBar.Progress);
+            int w = percentToDeviceRange(wBar.Progress);
 
-            msg.Put("modeType", "setColor");
-
-
-            JSONObject data = new JSONObject();
-            data.Put("r", percentToDeviceRange(rBar.Progress));
-            data.Put("b", percentToDeviceRange(bBar.Progress));
-            data.Put("g", percentToDeviceRange(gBar.Progress));
-            data.Put("w", percentToDeviceRange(wBar.Progress));
-
-
-            msg.Put("modeData", data);
-            Log.Info("Single Color", "On Progress Change : " + msg.ToString());
-
+            String msg = $"s{r:000}{g:000}{b:000}{w:000}\n";
+          
             Thread thread = new Thread(() =>
             {
                 dc.sendMessage(msg);
             });
             thread.Start();
-            
+
         }
     }
 }

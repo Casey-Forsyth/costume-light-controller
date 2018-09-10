@@ -21,7 +21,7 @@ namespace LightMobileApp
     {
         static DeviceController instance;
         BluetoothAdapter adapter;
-        BluetoothSocket temp = null;
+        Dictionary<String, BluetoothSocket> sockets;
 
         List<BTDevice> deviceList = new List<BTDevice>();
 
@@ -33,6 +33,7 @@ namespace LightMobileApp
 
         private DeviceController()
         {
+            sockets = new Dictionary<String, BluetoothSocket>();
             adapter = BluetoothAdapter.DefaultAdapter;
 
             if (adapter != null && adapter.IsEnabled)
@@ -41,7 +42,7 @@ namespace LightMobileApp
                 foreach (BluetoothDevice bt in bluetoothDevices)
                 {
                     if (bt.BondState == Bond.Bonded) {
-                        deviceList.Add(new BTDevice(bt.Address, bt.Name, bt.Name.Contains("WOW")));
+                        deviceList.Add(new BTDevice(bt.Address, bt.Name, bt.Name.Contains("Komomo")));
                     }
                 }
             }
@@ -49,7 +50,6 @@ namespace LightMobileApp
             {
                 deviceList.Add(new BTDevice("1", "Test", false));
                 deviceList.Add(new BTDevice("2", "Test2", false));
-
             }
 
 
@@ -79,8 +79,7 @@ namespace LightMobileApp
         {
             ICollection<BluetoothDevice> bluetoothDevices = adapter.BondedDevices;
 
-            if (Monitor.TryEnter(thisLock, new TimeSpan(0, 0, 0,0,50)))
-            {
+
                 foreach (BTDevice d in deviceList)
                 {
                 
@@ -92,13 +91,16 @@ namespace LightMobileApp
                         {
                             if (btd.Address == d.id)
                             {
-
-                                if(temp == null)
+                                BluetoothSocket socket;
+                                if (!sockets.ContainsKey(btd.Address))
                                 {
-                                    temp = btd.CreateRfcommSocketToServiceRecord(Java.Util.UUID.FromString("00001101-0000-1000-8000-00805f9b34fb"));
 
+                                    socket = btd.CreateRfcommSocketToServiceRecord(Java.Util.UUID.FromString("00001101-0000-1000-8000-00805f9b34fb"));
+                                    sockets.Add(btd.Address,socket);
+                                } else
+                                {
+                                    socket = sockets[btd.Address];
                                 }
-                                BluetoothSocket socket = temp;
 
                                 try
                                 {
@@ -114,7 +116,6 @@ namespace LightMobileApp
                                 if (socket.IsConnected)
                                 {
                                     Log.Info("BT MSG", "To: " + d.name + " MSG: " + msg);
-                                    //await socket.ConnectAsync();
                                     byte[] buffer = Encoding.ASCII.GetBytes(msg);
                                     socket.OutputStream.WriteAsync(buffer, 0, buffer.Length);
                                     Thread.Sleep(100);
@@ -126,7 +127,6 @@ namespace LightMobileApp
                     
 
                 }
-            }
                 
         }
         
